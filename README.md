@@ -3,7 +3,7 @@ publishbox
 
 A publish box with @ function.
 
-Support IE>8, Firefox, Chrome, Safari
+Support IE>7, Firefox, Chrome, Safari
 
 ## Preview
 
