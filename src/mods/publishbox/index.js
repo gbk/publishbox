@@ -42,6 +42,9 @@ define(function(require, exports, module) {
       box.contentEditable = true;
       E.on(box, 'keydown', function(evt) {
         var target = evt.target || evt.srcElement;
+        if (!target) {
+          return;
+        }
         if (target && target.className == 'at') { // @人员为一个整体，不能再做编辑
           return;
         }
@@ -86,11 +89,14 @@ define(function(require, exports, module) {
       document.body.appendChild(menu);
       E.on(menu, 'mousemove', function(evt) { // 鼠标高亮选项
         var target = evt.target || evt.srcElement;
-        while (D.attr(target, 'role') != 'menuItem') {
+        while (target && D.attr(target, 'role') != 'menuItem') {
           if (target == this) {
             return;
           }
           target = target.parentNode;
+        }
+        if (!target) {
+          return;
         }
         if (D.attr(target, 'role') == 'menuItem' && target.className != 'hover') {
           that.state.hover = target;
@@ -106,6 +112,9 @@ define(function(require, exports, module) {
         while (loop-- > 0 && target && D.attr(target, 'role') != 'menuItem') {
           target = target.parentNode;
         }
+        if (!target) {
+          return;
+        }
         if (D.attr(target, 'role') == 'menuItem') { // 选中提示选项
           that.state.hover = target;
           that._select();
@@ -113,6 +122,12 @@ define(function(require, exports, module) {
           that._abort();
         }
       });
+
+      // prevent auto mailto (IE9 only)
+      try {
+        document.execCommand('AutoUrlDetect', false, false);
+      } catch (e) {
+      }
     },
 
     /**
@@ -206,10 +221,13 @@ define(function(require, exports, module) {
           sel.removeAllRanges();
           sel.addRange(range);
         } else {
-          var range = document.selection.createRange();
-          range.moveToElementText(container);
-          range.move('character', index);
-          range.select();
+          try {
+            var range = document.body.createTextRange();
+            range.moveToElementText(box);
+            range.move('character', D.text(box).length - D.text(container).length + index);
+            range.select();
+          } catch (e) {
+          }
         }
       }
       this._close();
@@ -289,9 +307,9 @@ define(function(require, exports, module) {
               next.nodeValue = ' ';
               box.appendChild(next);
             }
-            var range = document.selection.createRange();
+            var range = document.body.createTextRange();
             range.moveToElementText(input);
-            var range1 = document.selection.createRange();
+            var range1 = document.body.createTextRange();
             range1.setEndPoint('StartToEnd', range);
             range1.move('character', 1);
             range1.select();
