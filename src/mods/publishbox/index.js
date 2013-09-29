@@ -41,7 +41,8 @@ define(function(require, exports, module) {
       // 输入框初始化
       box.contentEditable = true;
       E.on(box, 'keydown', function(evt) {
-        if (evt.target && evt.target.className == 'at') { // @人员为一个整体，不能再做编辑
+        var target = evt.target || evt.srcElement;
+        if (target && target.className == 'at') { // @人员为一个整体，不能再做编辑
           return;
         }
         if (that.state.open) { // 提示已开启
@@ -84,7 +85,7 @@ define(function(require, exports, module) {
       menu.className = 'publishbox-menu';
       document.body.appendChild(menu);
       E.on(menu, 'mousemove', function(evt) { // 鼠标高亮选项
-        var target = evt.target;
+        var target = evt.target || evt.srcElement;
         while (D.attr(target, 'role') != 'menuItem') {
           if (target == this) {
             return;
@@ -100,7 +101,7 @@ define(function(require, exports, module) {
         }
       });
       E.on(document, 'click', function(evt) { // 鼠标点击选项
-        var target = evt.target;
+        var target = evt.target || evt.srcElement;
         var loop = 3;
         while (loop-- > 0 && target && D.attr(target, 'role') != 'menuItem') {
           target = target.parentNode;
@@ -118,18 +119,28 @@ define(function(require, exports, module) {
      * 开启提示
      */
     _open: function() {
-      var sel = getSelection();
-      if (sel.rangeCount) {
-        var range = sel.getRangeAt(0);
+      if (window.getSelection) {
+        var sel = getSelection();
+        if (sel.rangeCount) {
+          var range = sel.getRangeAt(0);
+          this.state.open = true;
+          var node = document.createElement('span');
+          node.className = 'input';
+          node.innerHTML = '@';
+          range.insertNode(node);
+          range = document.createRange();
+          range.setStart(node, 1);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      } else {
+        var range = document.selection.createRange();
+        range.pasteHTML('<span class="input">@</span>');
         this.state.open = true;
-        var node = document.createElement('span');
-        node.className = 'input';
-        node.innerHTML = '@';
-        range.insertNode(node);
-        range = document.createRange();
-        range.setStart(node, 1);
-        sel.removeAllRanges();
-        sel.addRange(range);
+        var input = this.view.box.querySelector('.input');
+        range.moveToElementText(input);
+        range.move('character', 1);
+        range.select();
       }
     },
 
@@ -188,11 +199,18 @@ define(function(require, exports, module) {
           container = next;
         }
         // 创建选区
-        var sel = getSelection();
-        var range = document.createRange();
-        range.setStart(container, index);
-        sel.removeAllRanges();
-        sel.addRange(range);
+        if (window.getSelection) {
+          var sel = getSelection();
+          var range = document.createRange();
+          range.setStart(container, index);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } else {
+          var range = document.selection.createRange();
+          range.moveToElementText(container);
+          range.move('character', index);
+          range.select();
+        }
       }
       this._close();
     },
@@ -257,12 +275,27 @@ define(function(require, exports, module) {
           input.className = 'at';
           input.contentEditable = false;
           // 创建选区
-          var sel = getSelection();
-          var range = document.createRange();
-          range.setEndAfter(input);
-          range.setStartAfter(input);
-          sel.removeAllRanges();
-          sel.addRange(range);
+          if (window.getSelection) {
+            var sel = getSelection();
+            var range = document.createRange();
+            range.setEndAfter(input);
+            range.setStartAfter(input);
+            sel.removeAllRanges();
+            sel.addRange(range);
+          } else {
+            var next = input.nextSibling;
+            if (!next) {
+              next = document.createTextNode();
+              next.nodeValue = ' ';
+              box.appendChild(next);
+            }
+            var range = document.selection.createRange();
+            range.moveToElementText(input);
+            var range1 = document.selection.createRange();
+            range1.setEndPoint('StartToEnd', range);
+            range1.move('character', 1);
+            range1.select();
+          }
         }
       }
       this._close();
@@ -300,18 +333,24 @@ define(function(require, exports, module) {
      * 修改默认回车行为-插入<br>
      */
     _enter: function() {
-      var sel = getSelection();
-      if (sel.rangeCount) {
-        var range = sel.getRangeAt(0);
-        range.deleteContents();
-        br = document.createElement('br');
-        br1 = document.createElement('br');
-        range.insertNode(br);
-        this.view.box.insertBefore(br1, br);
-        range.setEndAfter(br);
-        range.setStartAfter(br);
-        sel.removeAllRanges();
-        sel.addRange(range);
+      if (window.getSelection) {
+        var sel = getSelection();
+        if (sel.rangeCount) {
+          var range = sel.getRangeAt(0);
+          range.deleteContents();
+          br = document.createElement('br');
+          br1 = document.createElement('br');
+          range.insertNode(br);
+          this.view.box.insertBefore(br1, br);
+          range.setEndAfter(br);
+          range.setStartAfter(br);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      } else {
+        var range = document.selection.createRange();
+        range.pasteHTML('<br/>');
+        range.select();
       }
     },
 

@@ -12,12 +12,13 @@ define(function(require, exports, module) {
       var ret = '';
       var nodeType = ele.nodeType;
       if (nodeType === 1) {
-        for (ele = ele.firstChild; ele; ele = ele.nextSlibling) {
+        for (ele = ele.firstChild; ele; ele = ele.nextSibling) {
           ret += getText(ele);
         }
       } else if (nodeType === 3 || nodeType === 4) {
         ret += ele.nodeValue;
       }
+      return ret;
     };
 
   /**
