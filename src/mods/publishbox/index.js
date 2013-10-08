@@ -77,7 +77,8 @@ define(function(require, exports, module) {
           that._open();
           E.halt(evt);
         } else if (evt.keyCode == 13) { // 回车：修改默认行为-插入<br/>
-          if (navigator.userAgent.indexOf('Firefox')  == -1) { // 火狐是正常的，其他浏览器有问题
+          if (navigator.userAgent.indexOf('Firefox')  == -1
+              && navigator.userAgent.indexOf('Opera')  == -1) { // Firefox和Opera是正常的，其他浏览器有问题
             that._enter();
             E.halt(evt);
           }
