@@ -77,9 +77,8 @@ define(function(require, exports, module) {
           that._open();
           E.halt(evt);
         } else if (evt.keyCode == 13) { // 回车：修改默认行为-插入<br/>
-          if (navigator.userAgent.indexOf('Firefox')  == -1
-              && navigator.userAgent.indexOf('Opera')  == -1) { // Firefox和Opera是正常的，其他浏览器有问题
-            that._enter();
+          if (navigator.userAgent.indexOf('Firefox')  == -1) { // Firefox是正常的，其他浏览器有问题
+            that._enter(navigator.userAgent.indexOf('Opera') != -1 ? 1 : 2); // Opera需要一个br，其他浏览器需要两个br
             E.halt(evt);
           }
         }
@@ -351,16 +350,16 @@ define(function(require, exports, module) {
     /**
      * 修改默认回车行为-插入<br>
      */
-    _enter: function() {
+    _enter: function(num) {
       if (window.getSelection) {
         var sel = getSelection();
         if (sel.rangeCount) {
           var range = sel.getRangeAt(0);
           range.deleteContents();
-          br = document.createElement('br');
-          br1 = document.createElement('br');
+          var br = document.createElement('br');
+          var br1 = document.createElement('br');
           range.insertNode(br);
-          this.view.box.insertBefore(br1, br);
+          num == 2 && this.view.box.insertBefore(br1, br);
           range.setEndAfter(br);
           range.setStartAfter(br);
           sel.removeAllRanges();
