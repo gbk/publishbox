@@ -1,0 +1,93 @@
+@CHARSET "UTF-8";
+
+body {
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  color: #333;
+}
+.publishbox {
+  width: 500px;
+  margin: 20px auto;
+}
+.publishbox .button {
+  display: inline-block;
+  margin: .5em;
+  padding: .2em 1em;
+  border: solid 1px #ddd;
+  background: #eee;
+  cursor: pointer;
+  font-size: 1.2em;
+}
+.publishbox .result {
+  min-height: 2em;
+  border: solid 1px #bbb;
+}
+.publishbox .textbox-wrap,
+.publishbox .textbox {
+  width: 380px;
+  height: 60px;
+}
+.publishbox .textbox-wrap {
+  padding: 10px;
+  border: solid 1px #bbb;
+}
+
+/* PublishBox Begin */
+.publishbox .textbox {
+  outline: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.publishbox .input,
+.publishbox .at {
+  display: inline-block;
+  outline: none;
+  white-space: nowrap;
+}
+.publishbox .at {
+  padding: .1em .2em;
+  margin: 0 .2em;
+  background: #eee;
+  border: solid 1px #ddd;
+  color: #427fed;
+}
+.publishbox-menu,
+.publishbox-menu li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.publishbox-menu {
+  position: absolute;
+  left: -9999px;
+  width: 200px;
+  background: #fff;
+  border: solid 1px #ccc;
+  cursor: pointer;
+}
+.publishbox-menu li {
+  padding: 10px 15px;
+  height: 30px;
+}
+.publishbox-menu li.hover {
+  background: #f1f1f1;
+}
+.publishbox-menu li .avatar {
+  float: left;
+}
+.publishbox-menu li .info {
+  float: right;
+  width: 130px;
+}
+.publishbox-menu li .nick {
+  width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: bold;
+}
+.publishbox-menu li .group {
+  color: #999;
+}
+/* PublishBox End */
