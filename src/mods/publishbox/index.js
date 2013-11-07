@@ -5,6 +5,9 @@ define(function(require, exports, module) {
 
   var TPL_MENU = require('./tpl/menu');
 
+  var isFirefox = navigator.userAgent.indexOf('Firefox') != -1;
+  var isOpera = navigator.userAgent.indexOf('Opera') != -1;
+
   /**
    * 发布框
    * @param cfg 配置项
@@ -40,6 +43,11 @@ define(function(require, exports, module) {
 
       // 输入框初始化
       box.contentEditable = true;
+      // prevent auto mailto (IE9 only)
+      try {
+        document.execCommand('AutoUrlDetect', false, false);
+      } catch (e) {
+      }
       E.on(box, 'keydown', function(evt) {
         var target = evt.target || evt.srcElement;
         if (!target) {
@@ -77,8 +85,8 @@ define(function(require, exports, module) {
           that._open();
           E.halt(evt);
         } else if (evt.keyCode == 13) { // 回车：修改默认行为-插入<br/>
-          if (navigator.userAgent.indexOf('Firefox')  == -1) { // Firefox是正常的，其他浏览器有问题
-            that._enter(navigator.userAgent.indexOf('Opera') != -1 ? 1 : 2); // Opera需要一个br，其他浏览器需要两个br
+          if (!isFirefox) { // Firefox是正常的，其他浏览器有问题
+            that._enter(isOpera ? 1 : 2); // Opera需要一个br，其他浏览器需要两个br
             E.halt(evt);
           }
         }
@@ -122,12 +130,6 @@ define(function(require, exports, module) {
           that._abort();
         }
       });
-
-      // prevent auto mailto (IE9 only)
-      try {
-        document.execCommand('AutoUrlDetect', false, false);
-      } catch (e) {
-      }
     },
 
     /**
@@ -288,27 +290,35 @@ define(function(require, exports, module) {
         var hover = this.state.hover;
         var input = box.querySelector('.input');
         if (input) {
-          input.innerHTML = '+' + hover.querySelector('[role="nick"]').innerHTML;
-          input.setAttribute('data-id', D.attr(hover, 'data-id'));
-          input.className = 'at';
-          input.contentEditable = false;
+          var btn;
+          if (isFirefox) { // button在火狐下不能用backspace删掉
+            btn = document.createElement('input');
+            btn.type = 'button';
+            btn.value = '+' + hover.querySelector('[role="nick"]').innerHTML;
+            btn.style.MozUserSelect = 'none';
+          } else {
+            btn = document.createElement('button');
+            btn.contentEditable = false;
+            btn.innerHTML = '+' + hover.querySelector('[role="nick"]').innerHTML;
+          }
+          btn.setAttribute('data-id', D.attr(hover, 'data-id'));
+          btn.className = 'at';
+          box.insertBefore(btn, input);
+          box.removeChild(input);
+          box.lastChild.tagName != 'BR' && box.appendChild(document.createElement('br'));
           // 创建选区
           if (window.getSelection) {
+            box.focus();
             var sel = getSelection();
             var range = document.createRange();
-            range.setEndAfter(input);
-            range.setStartAfter(input);
+            range.setStartAfter(btn);
+            range.setEndAfter(btn);
             sel.removeAllRanges();
             sel.addRange(range);
           } else {
-            var next = input.nextSibling;
-            if (!next) {
-              next = document.createTextNode();
-              next.nodeValue = ' ';
-              box.appendChild(next);
-            }
+            btn.unselectable = 'on';
             var range = document.body.createTextRange();
-            range.moveToElementText(input);
+            range.moveToElementText(btn);
             var range1 = document.body.createTextRange();
             range1.setEndPoint('StartToEnd', range);
             range1.move('character', 1);
@@ -340,7 +350,7 @@ define(function(require, exports, module) {
               that.state.hover = menu.firstChild;
               var offset = D.offset(input);
               menu.style.left = offset.left + 'px';
-              menu.style.top = offset.top + input.clientHeight + 'px';
+              menu.style.top = offset.top + input.offsetHeight + 'px';
             }
           }
         });
